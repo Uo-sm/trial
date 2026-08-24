@@ -44,3 +44,14 @@ WIND_POWER_PROFILE = {
     100:[9.5,  4.9, 5.0],    # 100分钟：Site0 功率恢复
     120:[10.0, 5.0, 5.0]
 }
+
+# ==================== 在线/离线混部仿真参数（参考Valve论文） ====================
+# 负载模式: "online_only" / "offline_only" / "mixed"
+WORKLOAD_MODE = "mixed"
+
+# mixed模式下，每秒请求中离线占比 0~1
+OFFLINE_RATIO = 0.3
+
+# 离线KV回收压力系数：当总KV超过阈值，离线吞吐的打折系数（模拟Valve子层重算开销）
+# kv压力越大，离线能拿到的算力比例越低，0代表完全无法处理，1无损失
+OFFLINE_THROUGHPUT_SCALE_BASE = 1.0
