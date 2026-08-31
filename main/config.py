@@ -47,7 +47,7 @@ WIND_POWER_PROFILE = {
 
 # ==================== 在线/离线混部仿真参数（参考Valve论文） ====================
 # 负载模式: "online_only" / "offline_only" / "mixed"
-WORKLOAD_MODE = "mixed"
+#WORKLOAD_MODE = "mixed"
 
 # mixed模式下，每秒请求中离线占比 0~1
 OFFLINE_RATIO = 0.3
@@ -55,3 +55,49 @@ OFFLINE_RATIO = 0.3
 # 离线KV回收压力系数：当总KV超过阈值，离线吞吐的打折系数（模拟Valve子层重算开销）
 # kv压力越大，离线能拿到的算力比例越低，0代表完全无法处理，1无损失
 OFFLINE_THROUGHPUT_SCALE_BASE = 1.0
+
+# ===================== AI‑for‑Science 可预测批量离线负载配置 =====================
+# 负载模式新增选项："ai4science_mixed"：在线随机不可预测 + 离线批量可预测AI4Science任务
+# 原有模式 online_only / offline_only / mixed 保留，用于对照实验
+WORKLOAD_MODE = "ai4science_mixed"
+
+# ----- AI4Science批量离线任务配置（仅WORKLOAD_MODE=="ai4science_mixed"生效）
+# 批量job定义：(submit_time_sec, job_num, per_job_output_tokens)
+# submit_time_sec：仿真第几秒提交这批离线job
+# job_num：这批有多少个离线任务
+# per_job_output_tokens：每个离线job需要生成多少token（可预测，调度器预先可见）
+AI4SCIENCE_OFFLINE_BATCHES = [
+    (10*60, 120, 400),   # 10min提交第一批，120个job，每个需要400token
+    (40*60, 180, 400),   # 40min提交第二批
+    (70*60, 150, 400),   # 70min提交第三批
+    (100*60, 100, 400),  # 100min提交第四批
+]
+# 在线负载：ai4science_mixed模式下，在线依旧使用原来每秒随机到达 REQUEST_ARRIVAL_RATE
+
+# ================= AI4Science 可预测离线调度优化参数 =================
+# True=开启：使用风电预测，全局缓冲池，风电高才下发离线job；False=旧逻辑：job到达立刻全部下发
+ENABLE_OFFLINE_PREDICT_SCHED = False
+# 每一秒，允许从全局缓冲池最大下发多少离线job到站点，防止瞬间爆压
+MAX_DISPATCH_OFFLINE_PER_SEC = 25
+
+# ====================== 共享集中式储能配置（3站点共用一套储能中心） ======================
+# 储能总容量 kWh
+SHARED_STORAGE_CAPACITY_KWH = 60.0
+# 储能最大充电总功率 kW
+SHARED_MAX_CHARGE_KW = 25.0
+# 储能最大放电总功率 kW
+SHARED_MAX_DISCHARGE_KW = 25.0
+# 充放电效率 0~1
+STORAGE_CHARGE_EFF = 0.95
+STORAGE_DISCHARGE_EFF = 0.95
+# SOC上下限，防止过充过放
+STORAGE_SOC_MIN = 0.10
+STORAGE_SOC_MAX = 0.95
+# 初始SOC
+STORAGE_INIT_SOC = 0.50
+# 仿真步长 1s，转换成小时用于kWh计算
+SIM_STEP_H = 1.0 / 3600.0
+
+
+# 是否启用全局共享储能；False=不启用，直接使用原始风电（对照组）
+# USE_SHARED_STORAGE = True
